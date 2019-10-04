@@ -9,6 +9,11 @@ import Foundation
 import Vapor
 import HTTP
 
+
+#if os(Linux)
+    import FoundationNetworking
+#endif
+
 extension S3 {
     
     /// Make an S3 request
