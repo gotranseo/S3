@@ -7,12 +7,12 @@
 
 import Foundation
 import Vapor
-
+import NIO
 
 extension HTTPHeaders {
     
     func string(_ name: String) -> String? {
-        let header = HTTPHeaderName(name)
+        let header = HTTPHeaders.Name(name)
         return self[header].first
     }
     

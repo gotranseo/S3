@@ -10,7 +10,7 @@ import Vapor
 import XMLCoding
 
 
-extension Response {
+extension ClientResponse {
     
     static var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -31,12 +31,13 @@ extension Response {
     }()
     
     func decode<T>(to: T.Type) throws -> T where T: Decodable {
-        guard let data = http.body.data else {
+        guard let bod = self.body else {
             throw S3.Error.badResponse(self)
         }
         
+        let data = Data(bod.readableBytesView)
         let decoder = XMLDecoder()
-        decoder.dateDecodingStrategy = .formatted(Response.dateFormatter)
+        decoder.dateDecodingStrategy = .formatted(ClientResponse.dateFormatter)
         return try decoder.decode(T.self, from: data)
     }
     

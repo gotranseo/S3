@@ -14,31 +14,28 @@ extension S3 {
     // MARK: Copy
     
     /// Copy file on S3
-    public func copy(file: LocationConvertible, to: LocationConvertible, headers: [String: String], on container: Container) throws -> Future<File.CopyResponse> {
-        let builder = urlBuilder(for: container)
+    public func copy(file: LocationConvertible, to: LocationConvertible, headers: HTTPHeaders) throws -> EventLoopFuture<File.CopyResponse> {
+        let builder = urlBuilder()
         let originPath = "\(file.bucket ?? defaultBucket)/\(file.path)"
         let destinationUrl = try builder.url(file: to)
         
-        var awsHeaders: [String: String] = headers
-        awsHeaders["x-amz-copy-source"] = originPath
+        var awsheaders: HTTPHeaders = headers
+        awsheaders.replaceOrAdd(name: "x-amz-copy-source", value: originPath)
         let headers = try signer.headers(
             for: .PUT,
-            urlString: destinationUrl.absoluteString,
-            headers: awsHeaders,
+            urlString: destinationUrl,
+            headers: awsheaders,
             payload: .none
         )
-        
-        let request = Request(using: container)
-        request.http.method = .PUT
-        request.http.headers = headers
-        request.http.body = .empty
-        request.http.url = destinationUrl
-        
-        let client = try container.make(Client.self)
-        return client.send(request).map {
-            try self.check($0)
-            return try $0.decode(to: File.CopyResponse.self)
+
+        return self.client.put(URI(string: destinationUrl.absoluteString), headers: headers) { req in
+            var buffer = ByteBufferAllocator().buffer(capacity: Data().count)
+            buffer.writeBytes(Data())
+            
+            req.body = buffer
+        }.flatMapThrowing { response in
+            try self.check(response)
+            return try response.content.decode(File.CopyResponse.self)
         }
     }
-    
 }

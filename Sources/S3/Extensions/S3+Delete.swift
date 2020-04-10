@@ -15,21 +15,20 @@ extension S3 {
     // MARK: Delete
     
     /// Delete file from S3
-    public func delete(file: LocationConvertible, headers: [String: String], on container: Container) throws -> Future<Void> {
-        let builder = urlBuilder(for: container)
+    public func delete(file: LocationConvertible, headers: HTTPHeaders) throws -> EventLoopFuture<Void> {
+        let builder = urlBuilder()
         let url = try builder.url(file: file)
         
-        let headers = try signer.headers(for: .DELETE, urlString: url.absoluteString, headers: headers, payload: .none)
-        return try make(request: url, method: .DELETE, headers: headers, data: emptyData(), on: container).map(to: Void.self) { response in
+        let headers = try signer.headers(for: .DELETE, urlString: url, headers: headers, payload: .none)
+        return try make(request: url, method: .DELETE, headers: headers, data: emptyData()).flatMapThrowing { response -> Void in
             try self.check(response)
-            
             return Void()
         }
     }
     
     /// Delete file from S3
-    public func delete(file: LocationConvertible, on container: Container) throws -> Future<Void> {
-        return try delete(file: file, headers: [:], on: container)
+    public func delete(file: LocationConvertible) throws -> EventLoopFuture<Void> {
+        return try delete(file: file, headers: [:])
     }
     
 }

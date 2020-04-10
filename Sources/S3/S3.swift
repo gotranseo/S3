@@ -8,18 +8,17 @@
 
 import Foundation
 import Vapor
-import HTTP
 @_exported import S3Signer
 
 
 /// Main S3 class
-public class S3: S3Client {    
+public class S3 {
     
     /// Error messages
     public enum Error: Swift.Error {
         case invalidUrl
         case errorResponse(HTTPResponseStatus, ErrorMessage)
-        case badResponse(Response)
+        case badResponse(ClientResponse)
         case badStringData
         case missingData
         case notFound
@@ -32,33 +31,22 @@ public class S3: S3Client {
     /// Signer instance
     public let signer: S3Signer
     
-    let urlBuilder: URLBuilder?
+    let client: Client
     
     // MARK: Initialization
     
     /// Basic initialization method, also registers S3Signer and self with services
-    @discardableResult public convenience init(defaultBucket: String, config: S3Signer.Config, services: inout Services) throws {
+    @discardableResult public convenience init(defaultBucket: String, config: S3Signer.Config, client: Client) throws {
         let signer = try S3Signer(config)
-        try self.init(defaultBucket: defaultBucket, signer: signer)
-        
-        services.register(signer)
-        services.register(self, as: S3Client.self)
+        try self.init(defaultBucket: defaultBucket, signer: signer, client: client)
     }
     
     /// Basic initialization method
-    public init(defaultBucket: String, signer: S3Signer) throws {
+    public init(defaultBucket: String, signer: S3Signer, client: Client) throws {
         self.defaultBucket = defaultBucket
         self.signer = signer
-        self.urlBuilder = nil
+        self.client = client
     }
-    
-    /// Basic initialization method
-    public init(urlBuilder: URLBuilder, defaultBucket: String, signer: S3Signer) throws {
-        self.defaultBucket = defaultBucket
-        self.signer = signer
-        self.urlBuilder = nil
-    }
-    
 }
 
 // MARK: - Helper methods
@@ -68,14 +56,14 @@ extension S3 {
     // QUESTION: Can we replace this with just Data()?
     /// Serve empty data
     func emptyData() -> Data {
-        return "".convertToData()
+        return Data("".utf8)
     }
     
     /// Check response for error
-    @discardableResult func check(_ response: Response) throws -> Response {
-        guard response.http.status == .ok || response.http.status == .noContent else {
-            if let error = try? response.decode(to: ErrorMessage.self) {
-                throw Error.errorResponse(response.http.status, error)
+    @discardableResult func check(_ response: ClientResponse) throws -> ClientResponse {
+        guard response.status == .ok || response.status == .noContent else {
+            if let error = try? response.content.decode(ErrorMessage.self) {
+                throw Error.errorResponse(response.status, error)
             } else {
                 throw Error.badResponse(response)
             }
@@ -85,8 +73,8 @@ extension S3 {
     
     /// Get mime type for file
     static func mimeType(forFileAtUrl url: URL) -> String {
-        guard let mediaType = MediaType.fileExtension(url.pathExtension) else {
-            return MediaType(type: "application", subType: "octet-stream").description
+        guard let mediaType = HTTPMediaType.fileExtension(url.pathExtension) else {
+            return HTTPMediaType(type: "application", subType: "octet-stream").description
         }
         return mediaType.description
     }
@@ -97,8 +85,7 @@ extension S3 {
     }
     
     /// Create URL builder
-    func urlBuilder(for container: Container) -> URLBuilder {
-        return urlBuilder ?? S3URLBuilder(container, defaultBucket: defaultBucket, config: signer.config)
-    }
-    
+    func urlBuilder() -> URLBuilder {
+        return S3URLBuilder(defaultBucket: defaultBucket, config: signer.config)
+    }    
 }
