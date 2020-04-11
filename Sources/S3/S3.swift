@@ -89,3 +89,24 @@ extension S3 {
         return S3URLBuilder(defaultBucket: defaultBucket, config: signer.config)
     }    
 }
+
+// Provider
+extension Application {
+    struct S3StorageKey: StorageKey {
+        typealias Value = S3
+    }
+    
+    var s3: S3 {
+        get {
+            guard let val = self.storage[S3StorageKey.self] else { fatalError("Register S3 in your configuration file") }
+            return val
+        }
+        set {
+            self.storage[S3StorageKey.self] = newValue
+        }
+    }
+}
+
+extension Request {
+    var s3: S3 { self.application.s3 }
+}
