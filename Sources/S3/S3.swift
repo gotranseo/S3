@@ -96,7 +96,7 @@ extension Application {
         typealias Value = S3
     }
     
-    var s3: S3 {
+    public var s3: S3 {
         get {
             guard let val = self.storage[S3StorageKey.self] else { fatalError("Register S3 in your configuration file") }
             return val
@@ -108,5 +108,5 @@ extension Application {
 }
 
 extension Request {
-    var s3: S3 { self.application.s3 }
+    public var s3: S3 { self.application.s3 }
 }
