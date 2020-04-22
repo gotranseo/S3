@@ -12,7 +12,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.0.0"),
-        .package(url: "https://github.com/gotranseo/XMLCoding.git", .branch("vapor4"))
+        .package(url: "https://github.com/gotranseo/XMLCoding.git", from: "1.0.0")
     ],
     targets: [
         .target(name: "S3", dependencies: [
