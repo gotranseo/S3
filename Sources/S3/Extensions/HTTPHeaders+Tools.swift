@@ -7,12 +7,12 @@
 
 import Foundation
 import Vapor
-
+import NIO
 
 extension HTTPHeaders {
     
     func string(_ name: String) -> String? {
-        let header = HTTPHeaderName(name)
+        let header = HTTPHeaders.Name(name)
         return self[header].first
     }
     
@@ -27,7 +27,6 @@ extension HTTPHeaders {
         guard let headerValue = string(name) else {
             return nil
         }
-        return Response.headerDateFormatter.date(from: headerValue)
+        return ClientResponse.headerDateFormatter.date(from: headerValue)
     }
-    
 }

@@ -1,11 +1,9 @@
 import Foundation
-import Service
-import HTTP
-import Crypto
-
+import Vapor
+import NIO
 
 /// S3 Client: All network calls to and from AWS' S3 servers
-public final class S3Signer: Service {
+public final class S3Signer {
     
     /// Errors
     public enum Error: Swift.Error {
@@ -21,7 +19,7 @@ public final class S3Signer: Service {
     }
     
     /// S3 Configuration
-    public struct Config: Service {
+    public struct Config {
         /// AWS authentication version
         let authVersion: Version
 
@@ -48,7 +46,6 @@ public final class S3Signer: Service {
             self.securityToken = securityToken
             self.authVersion = version
         }
-        
     }
     
     /// Configuration
@@ -58,19 +55,18 @@ public final class S3Signer: Service {
     public init(_ config: Config) throws {
         self.config = config
     }
-    
 }
 
 
 extension S3Signer {
     
     /// Generates auth headers for Simple Storage Services
-    public func headers(for httpMethod: HTTPMethod, urlString: URLRepresentable, region: Region? = nil, bucket: String? = nil, headers: [String: String] = [:], payload: Payload) throws -> HTTPHeaders {
+    public func headers(for httpMethod: HTTPMethod, urlString: URL, region: Region? = nil, bucket: String? = nil, headers: HTTPHeaders, payload: Payload) throws -> HTTPHeaders {
         return try self.headers(for: httpMethod, urlString: urlString, region: region, bucket: bucket, headers: headers, payload: payload, dates: Dates(Date()))
     }
     
     /// Create a pre-signed URL for later use
-    public func presignedURL(for httpMethod: HTTPMethod, url: URL, expiration: Expiration, region: Region? = nil, headers: [String: String] = [:]) throws -> URL? {
+    public func presignedURL(for httpMethod: HTTPMethod, url: URL, expiration: Expiration, region: Region? = nil, headers: HTTPHeaders) throws -> URL? {
         return try presignedURL(for: httpMethod, url: url, expiration: expiration, region: region, headers: headers, dates: Dates(Date()))
     }
 }

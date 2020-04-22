@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Core
 @_exported import S3Signer
 
 

@@ -1,6 +1,5 @@
 import Foundation
 
-
 /// Pre-sign URL expiration time
 public enum Expiration {
     
@@ -22,7 +21,6 @@ public enum Expiration {
     case custom(Seconds)
 }
 
-
 extension Expiration {
     
     /// Expiration Value
@@ -40,5 +38,4 @@ extension Expiration {
             return exp
         }
     }
-    
 }
