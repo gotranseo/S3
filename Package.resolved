@@ -131,9 +131,9 @@
         "package": "XMLCoding",
         "repositoryURL": "https://github.com/gotranseo/XMLCoding.git",
         "state": {
-          "branch": "vapor4",
-          "revision": "b6a1ad912504b554ebb505744dcb350583b93f5c",
-          "version": null
+          "branch": null,
+          "revision": "c49849da3e42914367237ce32f80469d0ec3a270",
+          "version": "1.0.0"
         }
       }
     ]
