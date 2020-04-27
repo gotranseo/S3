@@ -29,7 +29,7 @@ extension S3Signer {
     
     func canonicalHeaders(_ headers: HTTPHeaders) -> String {
         let headerList = Array(headers.map { $0.0 })
-            .map { "\($0.lowercased()):\(headers[$0])" }
+            .map { "\($0.lowercased()):\(headers[$0].first ?? "")" }
             .filter { $0 != "authorization" }
             .sorted(by: { $0.localizedCompare($1) == ComparisonResult.orderedAscending })
             .joined(separator: "\n")
@@ -50,11 +50,11 @@ extension S3Signer {
     }
     
     func createSignature(_ stringToSign: String, timeStampShort: String, region: Region) throws -> String {
-        let dateKey = Data(HMAC<SHA256>.authenticationCode(for: Data(timeStampShort.utf8), using: .init(data: Data("AWS4\(config.secretKey)".utf8))))
-        let dateRegionKey = Data(HMAC<SHA256>.authenticationCode(for: Data(region.name.description.utf8), using: .init(data: dateKey)))
-        let dateRegionServiceKey = Data(HMAC<SHA256>.authenticationCode(for: Data(config.service.utf8), using: .init(data: dateRegionKey)))
-        let signingKey = Data(HMAC<SHA256>.authenticationCode(for: Data("aws4_request".utf8), using: .init(data: dateRegionServiceKey)))
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(stringToSign.utf8), using: .init(data: signingKey))
+        let dateKey = HMAC<SHA256>.authenticationCode(for: timeStampShort.bytes, using: .init(data: "AWS4\(config.secretKey)".bytes))
+        let dateRegionKey = HMAC<SHA256>.authenticationCode(for: region.name.description.bytes, using: .init(data: dateKey))
+        let dateRegionServiceKey = HMAC<SHA256>.authenticationCode(for: config.service.bytes, using: .init(data: dateRegionKey))
+        let signingKey = HMAC<SHA256>.authenticationCode(for: "aws4_request".bytes, using: .init(data: dateRegionServiceKey))
+        let signature = HMAC<SHA256>.authenticationCode(for: stringToSign.bytes, using: .init(data: signingKey))
         return signature.hexEncodedString()
     }
     
@@ -148,8 +148,8 @@ extension S3Signer {
             let signHeaders = signed(headers: headers).encode(type: .queryAllowed) else {
                 throw Error.invalidEncoding
         }
-        let fullURL = "\(url.absoluteString)?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=\(config.accessKey)%2F\(credScope)&X-Amz-Date=\(dates.long)&X-Amz-Expires=\(expiration.value)&X-Amz-SignedHeaders=\(signHeaders)"
-        
+        let fullURL = "\(url.absoluteString)?x-amz-algorithm=AWS4-HMAC-SHA256&x-amz-credential=\(config.accessKey)%2F\(credScope)&x-amz-date=\(dates.long)&x-amz-expires=\(expiration.value)&x-amz-signedheaders=\(signHeaders)"
+
         // This should never throw.
         guard let url = URL(string: fullURL) else {
             throw Error.badURL(fullURL)
@@ -213,7 +213,7 @@ extension S3Signer {
         
         let stringToSign = try createStringToSign(canonRequest, dates: dates, region: region)
         let signature = try createSignature(stringToSign, timeStampShort: dates.short, region: region)
-        let presignedURL = URL(string: fullURL.absoluteString.appending("&X-Amz-Signature=\(signature)"))
+        let presignedURL = URL(string: fullURL.absoluteString.appending("&x-amz-signature=\(signature)"))
         return presignedURL
     }
     
@@ -248,4 +248,8 @@ extension S3Signer {
         
         return headers
     }
+}
+
+extension String {
+    var bytes: [UInt8] { .init(self.utf8) }
 }

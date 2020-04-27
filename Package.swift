@@ -22,6 +22,11 @@ let package = Package(
         ]),
         .target(name: "S3Signer", dependencies: [
             .product(name: "Vapor", package: "vapor")
+        ]),
+        .testTarget(name: "S3Tests", dependencies: [
+            .product(name: "Vapor", package: "vapor"),
+            .target(name: "S3Signer"),
+            .target(name: "S3")
         ])
     ]
 )

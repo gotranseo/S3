@@ -73,7 +73,7 @@ class AWSTestSuite: BaseTestCase {
 			"authorization": "AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=8745d16e49fb5550634d56c2c4bb6841e42d7595f8529cf9ea14d05d51935b20"
 		]
 
-        let allHeadersForRequest = try! signer.headers(for: .GET, urlString: requestURLString, payload: .none, dates: overridenDate)
+        let allHeadersForRequest = try! signer.headers(for: .GET, urlString: URL(string: requestURLString)!, payload: .none, dates: overridenDate)
 
 		XCTAssertEqual(allExpectedHeadersForRequest, allHeadersForRequest.dictionaryRepresentation())
 	}
@@ -205,7 +205,7 @@ class AWSTestSuite: BaseTestCase {
 			"authorization": "AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=ea870aa535725edbb806253d7eaac9b0c38cdb256efc42c18739a2e8c14bc2ee"
 		]
 
-        let allHeadersForRequest = try! signer.headers(for: .POST, urlString: requestURLString, payload: .none, dates: overridenDate)
+        let allHeadersForRequest = try! signer.headers(for: .POST, urlString: URL(string: requestURLString)!, payload: .none, dates: overridenDate)
 
 		XCTAssertEqual(allExpectedHeadersForRequest, allHeadersForRequest.dictionaryRepresentation())
 	}

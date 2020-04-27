@@ -13,7 +13,6 @@ class S3SignerAWSTests: BaseTestCase {
         ("test_S3Signer_get_dates", test_S3Signer_get_dates),
         ("test_S3Signer_service", test_S3Signer_service),
         ("test_Put_with_pathExtension_adds_content_length_And_content_type", test_Put_with_pathExtension_adds_content_length_And_content_type),
-        ("test_Throws_on_bad_url", test_Throws_on_bad_url),
     ]
 
 	func test_Dates_formatting() {
@@ -92,7 +91,7 @@ class S3SignerAWSTests: BaseTestCase {
     func test_Put_with_pathExtension_adds_content_length_And_content_type() {
         let randomBytesMessage = "Welcome to Amazon S3.".data(using: .utf8)!
         let headers = try! signer.headers(for: .PUT,
-                                          urlString: "https://www.someURL.com/someFile.txt",
+                                          urlString: URL(string: "https://www.someURL.com/someFile.txt")!,
                                           payload: .bytes(randomBytesMessage),
                                           dates: overridenDate)
 
@@ -100,9 +99,5 @@ class S3SignerAWSTests: BaseTestCase {
         XCTAssertNotNil(headers["Content-Type"].first)
         XCTAssertEqual(headers["Content-Length"].first, Payload.bytes(randomBytesMessage).size())
         XCTAssertEqual(headers["Content-Type"].first, "text/plain")
-    }
-
-    func test_Throws_on_bad_url() {
-        XCTAssertThrowsError(try signer.headers(for: .GET, urlString: "", payload: .none))
     }
 }

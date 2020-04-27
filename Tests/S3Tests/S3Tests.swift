@@ -184,7 +184,7 @@ class S3Tests: BaseTestCase {
 
         let (canonRequest, _) = try! signer.presignedURLCanonRequest(.GET, dates: overridenDate, expiration: Expiration.custom(86400), url: requestURL, region: region, headers: ["Host": requestURL.host ?? Region.usEast1.host])
 		
-		XCTAssertEqual(expectedCanonRequest, canonRequest)
+        XCTAssertEqual(expectedCanonRequest.lowercased(), canonRequest.lowercased())
 		
 		let expectedStringToSign = [
 			"AWS4-HMAC-SHA256",
@@ -194,22 +194,16 @@ class S3Tests: BaseTestCase {
 		].joined(separator: "\n")
 		
 		let stringToSign = try! signer.createStringToSign(canonRequest, dates: overridenDate, region: region)
-
-        NSLog("expectedStringToSign: \(expectedStringToSign)")
-        NSLog("stringToSign: \(stringToSign)")
 		XCTAssertEqual(expectedStringToSign, stringToSign)
-		
+
 		let expectedSignature = "17594f59285415a5be4debfcf5227a2d78b7c2634442b7ab816cace9333ec989"
-		
 		let signature = try! signer.createSignature(stringToSign, timeStampShort: overridenDate.short, region: region)
-		
 		XCTAssertEqual(expectedSignature, signature)
 
 		
 		let expectedURLString = "https://examplebucket.s3.amazonaws.com/test.txt?x-amz-algorithm=AWS4-HMAC-SHA256&x-amz-credential=AKIAIOSFODNN7EXAMPLE%2F20130524%2Fus-east-1%2Fs3%2Faws4_request&x-amz-date=20130524T000000Z&x-amz-expires=86400&x-amz-signedheaders=host&x-amz-signature=17594f59285415a5be4debfcf5227a2d78b7c2634442b7ab816cace9333ec989"
 
         let presignedURL = try! signer.presignedURL(for: .GET, url: requestURL, expiration: Expiration.custom(86400), region: region, headers: [:], dates: overridenDate)
-
 		XCTAssertEqual(expectedURLString, presignedURL?.absoluteString)
 	}
 }
