@@ -16,7 +16,8 @@ extension S3 {
                      region: Region? = nil,
                      prefix: String? = nil,
                      headers: HTTPHeaders,
-                     continuationToken: String? = nil
+                     continuationToken: String? = nil,
+                     delimiter: String? = nil
     ) throws -> EventLoopFuture<BucketResults> {
         let region = region ?? signer.config.region
         guard let baseUrl = URL(string: region.hostUrlString(bucket: bucket)), let host = baseUrl.host,
@@ -31,6 +32,9 @@ extension S3 {
         }
         if let prefix = prefix {
             components.queryItems?.append(URLQueryItem(name: "prefix", value: prefix))
+        }
+        if let delimiter = delimiter {
+            components.queryItems?.append(URLQueryItem(name: "delimiter", value: delimiter))
         }
         guard let url = components.url else {
             throw S3.Error.invalidUrl
