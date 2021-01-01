@@ -15,7 +15,8 @@ extension S3 {
     public func list(bucket: String,
                      region: Region? = nil,
                      prefix: String? = nil,
-                     headers: HTTPHeaders
+                     headers: HTTPHeaders,
+                     continuationToken: String? = nil
     ) throws -> EventLoopFuture<BucketResults> {
         let region = region ?? signer.config.region
         guard let baseUrl = URL(string: region.hostUrlString(bucket: bucket)), let host = baseUrl.host,
@@ -25,6 +26,9 @@ extension S3 {
         components.queryItems = [
             URLQueryItem(name: "list-type", value: "2")
         ]
+        if let continuationToken = continuationToken {
+            components.queryItems?.append(URLQueryItem(name: "continuation-token", value: continuationToken))
+        }
         if let prefix = prefix {
             components.queryItems?.append(URLQueryItem(name: "prefix", value: prefix))
         }
