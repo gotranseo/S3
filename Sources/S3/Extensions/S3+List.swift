@@ -42,7 +42,11 @@ extension S3 {
         var headers = headers
         headers.replaceOrAdd(name: "host", value: host)
         let awsHeaders = try signer.headers(for: .GET, urlString: url, region: region, bucket: bucket, headers: headers, payload: .none)
-        return try make(request: url, method: .GET, headers: awsHeaders, data: emptyData()).flatMapThrowing { response in
+        return try make(request: url.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? url.absoluteString,
+                        method: .GET,
+                        headers: awsHeaders,
+                        data: emptyData()
+        ).flatMapThrowing { response in
             try self.check(response)
             return try response.decode(to: BucketResults.self)
         }
